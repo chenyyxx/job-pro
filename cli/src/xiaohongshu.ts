@@ -120,8 +120,10 @@ function recruitTypeForScope(s: PositionScope | undefined): "campus" | "social" 
 
 const API_ROOT = "https://job.xiaohongshu.com";
 const CAMPUS_PAGE = "https://job.xiaohongshu.com/campus/position";
+// SPA router is `/campus/position/:id` (with `/:id/apply` sibling). The query-string
+// form `?id=…` falls through to the list route and never renders the detail page.
 const DETAIL_PAGE = (positionId: string | number) =>
-  `https://job.xiaohongshu.com/campus/position?id=${encodeURIComponent(String(positionId))}`;
+  `https://job.xiaohongshu.com/campus/position/${encodeURIComponent(String(positionId))}`;
 
 const DEFAULT_HEADERS = {
   "User-Agent":
