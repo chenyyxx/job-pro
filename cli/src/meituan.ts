@@ -134,7 +134,7 @@
 //   recruit_label ← jobType mapped to human label (社招/实习/校园)
 //   bgs           ← jobFamilyGroup (e.g. "软件") + jobFamily (e.g. "技术类")
 //   work_cities   ← cityList[*].name joined with " / "
-//   apply_url     ← https://zhaopin.meituan.com/job-list/${jobUnionId}
+//   apply_url     ← https://zhaopin.meituan.com/web/position/detail?jobUnionId=${jobUnionId}&jobShareType=1&highlightType=${campus|social}
 //
 // Detail fields:
 //   description   ← jobDuty (job responsibilities)
@@ -167,9 +167,18 @@ function jobTypeCodesForScope(s: PositionScope | undefined): string[] {
 }
 
 const API_ROOT = "https://zhaopin.meituan.com/api/official";
-const LIST_PAGE = "https://zhaopin.meituan.com/job-list";
-const DETAIL_PAGE = (jobUnionId: string) =>
-  `https://zhaopin.meituan.com/job-list/${encodeURIComponent(jobUnionId)}`;
+const LIST_PAGE = "https://zhaopin.meituan.com/web/social";
+// Server only mounts the SPA under `/web/...`. Every other path (including the
+// old `/job-list/<id>`) 302s to `/web/social` — the list page — so the previous
+// DETAIL_PAGE shape was effectively a list-page redirect. The SPA's actual
+// detail route is `/web/position/detail?jobUnionId=...&jobShareType=1&highlightType=...`
+// where highlightType is `campus` for jobType 1/2 (校招/实习) and `social` for
+// jobType 3 (社招). Mirrors the share-URL shape baked into the bundle.
+function highlightTypeForJobType(jobType?: string): "campus" | "social" {
+  return jobType === "3" ? "social" : "campus";
+}
+const DETAIL_PAGE = (jobUnionId: string, jobType?: string) =>
+  `https://zhaopin.meituan.com/web/position/detail?jobUnionId=${encodeURIComponent(jobUnionId)}&jobShareType=1&highlightType=${highlightTypeForJobType(jobType)}`;
 
 const DEFAULT_HEADERS = {
   "User-Agent":
@@ -394,7 +403,7 @@ function summarizePosition(item: RawJobListEntry): PositionSummary {
     recruit_label: recruitLabel,
     bgs,
     work_cities: citiesText(item.cityList),
-    apply_url: jobUnionId ? DETAIL_PAGE(jobUnionId) : LIST_PAGE,
+    apply_url: jobUnionId ? DETAIL_PAGE(jobUnionId, jobTypeCode) : LIST_PAGE,
   };
 }
 
@@ -610,7 +619,7 @@ export async function fetchPositionDetail(postId: string) {
     work_year: raw.workYear ?? null,
     work_cities: (raw.cityList ?? []).map((c) => c.name ?? "").filter(Boolean),
     recruit_cities: [],  // Meituan API does not expose a separate recruit city list
-    apply_url: DETAIL_PAGE(String(raw.jobUnionId ?? id)),
+    apply_url: DETAIL_PAGE(String(raw.jobUnionId ?? id), raw.jobType),
   };
 }
 
