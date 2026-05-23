@@ -57,8 +57,13 @@ export const supportedScopes: ReadonlyArray<PositionScope> = ["social", "campus"
 
 const SOURCE = "unitree.com";
 const POSITION_PAGE = "https://www.unitree.com/position/";
-const DETAIL_URL = (jobCode: string) =>
-  `https://www.unitree.com/position/${encodeURIComponent(jobCode)}`;
+// Nuxt only mounts `/position/<numericSnowflakeId>` (e.g. /position/1569894802328125440).
+// `/position/<JobCode>` (e.g. /position/J10126) returns HTTP 404. The list-page
+// HTML pairs each (J\d+) title with its snowflake id in the surrounding
+// `<a href="/position/<id>" ...>` block — we parse that mapping out of the
+// raw HTML before stripTags throws away the hrefs.
+const DETAIL_URL = (numericId: string) =>
+  `https://www.unitree.com/position/${encodeURIComponent(numericId)}`;
 
 const DEFAULT_HEADERS: Record<string, string> = {
   "User-Agent":
@@ -110,7 +115,29 @@ function slugify(title: string): string {
     .slice(0, 40);
 }
 
+/**
+ * Pre-extract JobCode → numeric snowflake-id pairs from the raw HTML.
+ *
+ * The list page renders each job inside an `<a href="/position/<numericId>"...>`
+ * block whose inner `<p class="title">` contains the human title followed by
+ * the visible JobCode in parens, e.g. `解决方案工程师(J10126)`. stripTags()
+ * later drops the href, so we capture the mapping first.
+ */
+function extractJobCodeToNumericId(html: string): Map<string, string> {
+  const m = new Map<string, string>();
+  const linkPattern =
+    /<a[^>]*href="\/position\/(\d+)"[^>]*>\s*<p[^>]*class="title"[^>]*>[^<]*\(J(\d+)\)/g;
+  let match: RegExpExecArray | null;
+  while ((match = linkPattern.exec(html)) !== null) {
+    const numericId = match[1];
+    const jobCode = `J${match[2]}`;
+    if (!m.has(jobCode)) m.set(jobCode, numericId);
+  }
+  return m;
+}
+
 function parsePositions(html: string): PositionSummary[] {
+  const codeToNumericId = extractJobCodeToNumericId(html);
   const text = stripTags(html);
   const positions: PositionSummary[] = [];
 
@@ -156,6 +183,7 @@ function parsePositions(html: string): PositionSummary[] {
     if (isUrgent) recruitParts.push("急招");
     const recruit_label = recruitParts.join("|");
 
+    const numericId = codeToNumericId.get(jobCode);
     positions.push({
       post_id: jobCode,
       title: title || jobCode,
@@ -163,7 +191,7 @@ function parsePositions(html: string): PositionSummary[] {
       recruit_label,
       bgs: dept,
       work_cities: city,
-      apply_url: DETAIL_URL(jobCode),
+      apply_url: numericId ? DETAIL_URL(numericId) : POSITION_PAGE,
     });
   }
 
@@ -383,7 +411,10 @@ export async function fetchPositionDetail(postId: string) {
     recruit_label: pos?.recruit_label ?? "",
     description,
     work_cities: pos?.work_cities ?? "",
-    apply_url: pos?.apply_url ?? DETAIL_URL(id),
+    // The id we got is a JobCode (e.g. J10126) — DETAIL_URL needs a numeric
+    // snowflake id we only know via the list-page pool. Fall back to the list
+    // page when the position isn't in the pool.
+    apply_url: pos?.apply_url ?? POSITION_PAGE,
   };
 }
 
