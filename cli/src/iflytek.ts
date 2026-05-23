@@ -53,8 +53,29 @@ export const supportedScopes = ["social", "campus", "intern", "all"] as const;
 const SOURCE = "iflytek.zhiye.com";
 const API_ROOT = "https://iflytek.zhiye.com";
 const SITE_ROOT = "https://iflytek.zhiye.com/jobs";
-const DETAIL_PAGE = (id: string) =>
-  `https://iflytek.zhiye.com/jobs?jobAdId=${encodeURIComponent(id)}`;
+// Beisen recruitment-portal SPA only registers `/campus/detail`, `/social/detail`,
+// `/intern/detail` (extracted from the route table inside pc-app-*.chk.js).
+// `/jobs?jobAdId=<id>` matches only the list-page route, not the detail route —
+// same xiaohongshu-class symptom as 1.1.4.
+function businessTypeForJob(
+  categoryId?: string,
+  category?: string,
+): "campus" | "social" | "intern" {
+  // Beisen-standard numeric codes (3=intern, 4=social, 5=campus).
+  if (categoryId === "3") return "intern";
+  if (categoryId === "4") return "social";
+  if (categoryId === "5") return "campus";
+  const label = (category ?? "").toString();
+  if (label.includes("实习")) return "intern";
+  if (label.includes("校园") || label.includes("校招")) return "campus";
+  if (label.includes("社招") || label.includes("社会")) return "social";
+  return "social";
+}
+const DETAIL_PAGE = (
+  id: string,
+  businessType: "campus" | "social" | "intern" = "social",
+) =>
+  `https://iflytek.zhiye.com/${businessType}/detail?jobAdId=${encodeURIComponent(id)}`;
 
 const DEFAULT_HEADERS = {
   "User-Agent":
@@ -186,6 +207,7 @@ interface RawJobAd {
 function summarize(item: RawJobAd): PositionSummary {
   const id = String(item.JobAdId ?? item.Id ?? "");
   const cities = Array.isArray(item.LocNames) ? item.LocNames.join(", ") : "";
+  const businessType = businessTypeForJob(item.CategoryId, item.Category);
   return {
     post_id: id,
     title: (item.JobAdName ?? "").trim(),
@@ -193,7 +215,7 @@ function summarize(item: RawJobAd): PositionSummary {
     recruit_label: (item.Category ?? "").trim(),
     bgs: "",
     work_cities: cities,
-    apply_url: id ? DETAIL_PAGE(id) : SITE_ROOT,
+    apply_url: id ? DETAIL_PAGE(id, businessType) : SITE_ROOT,
   };
 }
 
