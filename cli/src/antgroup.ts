@@ -50,10 +50,16 @@ const SOURCE = "hrcareersweb.antgroup.com";
 const API_ROOT = "https://hrcareersweb.antgroup.com/api";
 const CAMPUS_PAGE = "https://talent.antgroup.com/campus-list";
 const SOCIAL_PAGE = "https://talent.antgroup.com/off-campus-position";
+// Verified via the umi-router React chunks the official list pages use
+// (`p__CampusRecruitment__CRList__index.*.js` calls
+// `window.open("/campus-position?positionId=...")` and the social analog calls
+// `window.open("/off-campus-position?...")`). The old `/campus-list?positionId=`
+// and `/off-campus-position-detail?positionId=` either landed on the list
+// page (campus) or fell through to the root SPA shell (social).
 const DETAIL_URL = (recruitType: "campus" | "social", id: string) =>
   recruitType === "campus"
-    ? `https://talent.antgroup.com/campus-list?positionId=${encodeURIComponent(id)}`
-    : `https://talent.antgroup.com/off-campus-position-detail?positionId=${encodeURIComponent(id)}`;
+    ? `https://talent.antgroup.com/campus-position?positionId=${encodeURIComponent(id)}`
+    : `https://talent.antgroup.com/off-campus-position?positionId=${encodeURIComponent(id)}`;
 
 const DEFAULT_HEADERS: Record<string, string> = {
   "User-Agent":
