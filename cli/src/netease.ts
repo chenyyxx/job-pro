@@ -98,9 +98,15 @@ function workTypeForScope(s: PositionScope | undefined): "0" | "1" {
 }
 
 const API_ROOT = "https://hr.163.com/api/hr163";
-const CAMPUS_PAGE = "https://hr.163.com/job-list?workType=1";
+const CAMPUS_PAGE = "https://hr.163.com/job-list.html?workType=1";
+// The SPA registers each top-level route as a separate .html entry — nginx
+// will serve a generic shell for the bare path (`/job-detail?id=...`) but
+// that bootstraps `index.488b4902.js` (the index page) instead of the
+// page-specific `job-detail.620522dd.js` chunk. The SPA itself only ever
+// emits the `.html` form for shareable / external links
+// (`window.open("job-detail.html?id=" + id)`), so that is the canonical URL.
 const DETAIL_PAGE = (id: string) =>
-  `https://hr.163.com/job-detail?id=${encodeURIComponent(id)}`;
+  `https://hr.163.com/job-detail.html?id=${encodeURIComponent(id)}`;
 const SOURCE = "hr.163.com";
 
 const DEFAULT_HEADERS: Record<string, string> = {
