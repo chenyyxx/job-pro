@@ -18,6 +18,7 @@ const adapter = createAdapter({
   label: "Cainiao / 菜鸟",
 });
 
+export const supportedScopes = adapter.supportedScopes;
 export const searchPositions = adapter.searchPositions;
 export const fetchAllPositions = adapter.fetchAllPositions;
 export const fetchPositionDetail = adapter.fetchPositionDetail;

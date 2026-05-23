@@ -17,6 +17,7 @@ const adapter = createAdapter({
   label: "WeBank / 微众银行",
 });
 
+export const supportedScopes = adapter.supportedScopes;
 export const searchPositions = adapter.searchPositions;
 export const fetchAllPositions = adapter.fetchAllPositions;
 export const fetchPositionDetail = adapter.fetchPositionDetail;

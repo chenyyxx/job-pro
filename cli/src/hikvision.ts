@@ -20,6 +20,7 @@ const adapter = createAdapter({
   label: "Hikvision / 海康威视",
 });
 
+export const supportedScopes = adapter.supportedScopes;
 export const searchPositions = adapter.searchPositions;
 export const fetchAllPositions = adapter.fetchAllPositions;
 export const fetchPositionDetail = adapter.fetchPositionDetail;
