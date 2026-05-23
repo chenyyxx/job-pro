@@ -53,7 +53,7 @@
 //   recruit_label ← item.kindName    (e.g. "Fresh Graduates")
 //   bgs           ← item.buName      (BU = Business Unit, e.g. "International business")
 //   work_cities   ← item.cityName
-//   apply_url     ← https://careers.ctrip.com/campus/job-detail/<jobId>
+//   apply_url     ← https://careers.ctrip.com/campus#/experienced/job-detail/<fromId> (MJ-code)
 //                   (uses UUID `jobId`, not numeric `id`)
 //
 // ============================================================
@@ -98,8 +98,13 @@ export const supportedScopes = ["social", "campus", "intern", "all"] as const sa
 
 const API_ROOT = "https://careers.ctrip.com/api/hrrecruit";
 const CAMPUS_PAGE = "https://careers.ctrip.com/campus";
-const DETAIL_PAGE = (jobId: string) =>
-  `https://careers.ctrip.com/campus/job-detail/${encodeURIComponent(jobId)}`;
+// SPA uses hash routing under /campus. The actual detail route is
+// `#/experienced/job-detail/<MJ-code>` where the MJ-code is the raw API's
+// `fromId` field (e.g. "MJ034732"). The previous `/campus/job-detail/<UUID>`
+// path was not a registered route — server gave a generic 200, SPA hash-router
+// landed on the homepage carousel. Verified via headless browser.
+const DETAIL_PAGE = (mjCode: string) =>
+  `https://careers.ctrip.com/campus#/experienced/job-detail/${encodeURIComponent(mjCode)}`;
 
 const DEFAULT_HEADERS: Record<string, string> = {
   "User-Agent":
@@ -161,6 +166,10 @@ async function call<T>(
 interface RawJobAd {
   id?: string | number;
   jobId?: string;
+  /** Human-facing MJ-code (e.g. "MJ034732"). The SPA's detail route keys on
+   * this, not on jobId — the public job listings on careers.ctrip.com link
+   * out as `#/experienced/job-detail/<fromId>`. */
+  fromId?: string;
   jobTitle?: string;
   publishDate?: string;
   city?: string;
@@ -196,7 +205,7 @@ export interface PositionSummary {
 
 function summarizePosition(item: RawJobAd): PositionSummary {
   const id = String(item.id ?? "");
-  const jobId = item.jobId ?? "";
+  const mjCode = item.fromId ?? "";
   return {
     post_id: id,
     title: item.jobTitle ?? "",
@@ -204,7 +213,7 @@ function summarizePosition(item: RawJobAd): PositionSummary {
     recruit_label: item.kindName ?? "",
     bgs: (item.buName ?? "").trim(),
     work_cities: item.cityName ?? "",
-    apply_url: jobId ? DETAIL_PAGE(jobId) : CAMPUS_PAGE,
+    apply_url: mjCode ? DETAIL_PAGE(mjCode) : CAMPUS_PAGE,
   };
 }
 

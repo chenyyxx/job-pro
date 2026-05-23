@@ -209,8 +209,13 @@ function summarize(
     recruit_label: label,
     bgs: (item.department?.name ?? "").trim(),
     work_cities: cities,
+    // Moka uses hash routing. Different tenants register different route
+    // shapes — sina's portal uses `#/job/<id>` (singular). The old form
+    // `/<channel>-recruitment/sina/<siteId>/job/<id>` (no fragment) hits the
+    // tenant's "page not found" handler at the server level. Verified via
+    // headless browser against the list page's own `<a href>` emit.
     apply_url: id
-      ? `https://app.mokahr.com/${channel}-recruitment/sina/${siteId}/job/${encodeURIComponent(id)}`
+      ? `https://app.mokahr.com/${channel}-recruitment/sina/${siteId}#/job/${encodeURIComponent(id)}`
       : channel === "social"
       ? SOCIAL_PAGE
       : CAMPUS_PAGE,
@@ -345,7 +350,7 @@ export async function fetchPositionDetail(postId: string) {
     work_cities: cities,
     commitment: raw.commitment ?? "",
     published_at: raw.publishedAt ?? raw.openedAt ?? "",
-    apply_url: `https://app.mokahr.com/campus-recruitment/sina/${CAMPUS_SITE_ID}/job/${encodeURIComponent(
+    apply_url: `https://app.mokahr.com/campus-recruitment/sina/${CAMPUS_SITE_ID}#/job/${encodeURIComponent(
       String(raw.id ?? id)
     )}`,
   };
