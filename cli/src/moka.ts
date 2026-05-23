@@ -373,7 +373,7 @@ export function createAdapter(cfg: MokaAdapterConfig) {
       recruit_label: commitmentFor(job),
       bgs: job.department?.name ?? "",
       work_cities: workCitiesFor(job, cityMap),
-      apply_url: `${portalUrl(ch)}#/jobs/${encodeURIComponent(job.id)}`,
+      apply_url: `${portalUrl(ch)}#/job/${encodeURIComponent(job.id)}`,
     };
   }
 
@@ -609,7 +609,7 @@ export function createAdapter(cfg: MokaAdapterConfig) {
         "Moka detail endpoint requires the same encrypted-session flow; not implemented. " +
         "Use the apply_url deeplink for the full JD.",
       post_id: postId,
-      apply_url: `${portalUrl(ch)}#/jobs/${encodeURIComponent(postId)}`,
+      apply_url: `${portalUrl(ch)}#/job/${encodeURIComponent(postId)}`,
     };
   }
 
@@ -731,7 +731,7 @@ export function createAdapter(cfg: MokaAdapterConfig) {
         source: SOURCE,
         post_id: id,
         job_title: detailAny.title ?? "",
-        apply_url: `${portalUrl(pickChannel())}#/jobs/${encodeURIComponent(id)}`,
+        apply_url: `${portalUrl(pickChannel())}#/job/${encodeURIComponent(id)}`,
         submit_endpoint: "https://app.mokahr.com/api/outer/ats-apply/website/apply",
         submit_method: "POST",
         submit_kind: "moka-aes",
