@@ -46,8 +46,11 @@ export const supportedScopes = ["social", "campus", "intern", "all"] as const sa
 
 const SOURCE = "lilithgames.jobs.feishu.cn";
 const HOST = "https://lilithgames.jobs.feishu.cn";
-const CAREER_PAGE = `${HOST}/career/`;
-const DETAIL_PAGE = (id: string) => `${HOST}/career/${encodeURIComponent(id)}/detail`;
+const CAREER_PAGE = `${HOST}/index/`;
+// Feishu's standard SSR route is `/index/position/:id/detail`. The previous
+// `/career/:id/detail` form returned a generic SPA shell (title "加入莉莉丝")
+// for every id including bogus ones — same xiaohongshu-class bug as 1.1.4.
+const DETAIL_PAGE = (id: string) => `${HOST}/index/position/${encodeURIComponent(id)}/detail`;
 
 // ---------- raw shapes (subset of Feishu envelope) ----------
 
