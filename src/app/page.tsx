@@ -396,7 +396,7 @@ const COMPANIES: Company[] = [
   },
 ];
 
-const PROMPT = `Run \`npx job-pro@latest help\` to discover the CLI, then use it to find
+const PROMPT = `Run \`npx @ha7ch/job-pro@latest help\` to discover the CLI, then use it to find
 Chinese big-tech campus jobs that fit my background.
 
 Ask me for my resume when you need it. Match roles to it, draft tailored
@@ -478,7 +478,7 @@ export default function Home() {
         Apply jobs w/ <span className="whitespace-nowrap">your Claude Code</span>
       </h1>
       <p className="lede">
-        <span className="lede-prefix">$</span> npx job-pro help
+        <span className="lede-prefix">$</span> npx @ha7ch/job-pro help
       </p>
 
       <section className="prompt-card" aria-labelledby="prompt-title">

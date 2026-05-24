@@ -1921,7 +1921,7 @@ async function main() {
   if (cmd === "extension") {
     // Locate the extension/ directory. The package ships it as a sibling of
     // dist/, so __dirname is cli/dist and the extension lives at ../extension.
-    // For a `npx job-pro` run, that lands in the npm cache; for a global
+    // For a `npx @ha7ch/job-pro` run, that lands in the npm cache; for a global
     // install, in the prefix. For local dev, the repo's top-level extension/.
     const here = dirname(fileURLToPath(import.meta.url));
     const candidates = [
@@ -1931,12 +1931,12 @@ async function main() {
     const extPath = candidates.find((p) => existsSync(join(p, "manifest.json"))) ?? null;
     const sub = args[1];
     if (sub === "path") {
-      if (!extPath) die("extension/ not found — please reinstall job-pro@latest");
+      if (!extPath) die("extension/ not found — please reinstall @ha7ch/job-pro@latest");
       console.log(extPath);
       return;
     }
     // Default: print install walkthrough.
-    if (!extPath) die("extension/ not found — please reinstall job-pro@latest");
+    if (!extPath) die("extension/ not found — please reinstall @ha7ch/job-pro@latest");
     console.log(`
 job-pro session-capture extension
 =================================

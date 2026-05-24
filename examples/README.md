@@ -4,7 +4,7 @@ Templates + a walkthrough for running an actual application end-to-end.
 Mostly useful once you've installed the CLI globally:
 
 ```bash
-npm i -g job-pro
+npm i -g @ha7ch/job-pro
 job-pro --version
 ```
 

@@ -7,8 +7,8 @@
 Query Chinese big-tech campus + social recruiting from your terminal — [job.ha7ch.com](https://job.ha7ch.com)
 
 ```bash
-npx job-pro@latest tencent search "后台开发"
-npx job-pro@latest bytedance search "后台开发" --scope social
+npx @ha7ch/job-pro@latest tencent search "后台开发"
+npx @ha7ch/job-pro@latest bytedance search "后台开发" --scope social
 ```
 
 No signup, no token, no proxy server. **50 companies, all live.** The CLI talks
@@ -57,7 +57,7 @@ attach your resume, and let the agent drive the CLI end-to-end.
 ## Install
 
 ```bash
-npm i -g job-pro
+npm i -g @ha7ch/job-pro
 job-pro --version
 job-pro selftest          # 3-stage end-to-end check; ~3s
 ```
@@ -65,7 +65,7 @@ job-pro selftest          # 3-stage end-to-end check; ~3s
 Or one-shot via `npx`:
 
 ```bash
-npx job-pro@latest help
+npx @ha7ch/job-pro@latest help
 ```
 
 ## What you can do today
