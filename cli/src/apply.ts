@@ -1303,8 +1303,8 @@ export async function executeMokaApply(
   }
 
   // Moka multipart: form fields + resume file. Tenant `orgId` and `jobId`
-  // are derivable from staged.apply_url (#/jobs/<id>) and staged.source
-  // (`app.mokahr.com/<slug>`); we extract them here.
+  // are derivable from staged.apply_url (#/job/<id> — singular, since 1.1.12)
+  // and staged.source (`app.mokahr.com/<slug>`); we extract them here.
   const slug = staged.source.split("/").pop() ?? "";
   const fd = new FormData();
   fd.append("orgId", slug);

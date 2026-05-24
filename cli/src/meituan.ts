@@ -586,6 +586,11 @@ export async function fetchPositionDetail(postId: string) {
   const id = (postId ?? "").trim();
   if (!id) return { ok: false as const, message: "post_id is required" };
 
+  // Referer uses default highlightType=campus because we don't yet know
+  // jobType — the API call IS how we'd find it out. Meituan's getJobDetail
+  // doesn't gate on Referer query params, so the campus/social mismatch on
+  // the Referer line is cosmetic. Once `raw.jobType` arrives we use it
+  // correctly in the response's `apply_url` (see end of this function).
   const response = await call<RawJobDetail>("POST", "/job/getJobDetail", {
     body: { jobUnionId: id },
     referer: DETAIL_PAGE(id),
