@@ -3,7 +3,7 @@
 // ============================================================
 // WHY THIS EXISTS
 //
-// Four of the 50 companies (hikvision / cicc / cainiao / webank) have no
+// Four of the 64 companies (hikvision / cicc / cainiao / webank) have no
 // publicly reachable canonical job feed — see `docs/stub-unblock.md`.
 // Liepin (https://www.liepin.com) is a major Chinese job aggregator
 // whose public `pc-search-job` endpoint surfaces real, currently-open

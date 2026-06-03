@@ -41,6 +41,20 @@ import * as baichuan from "./baichuan.js";
 import * as xpeng from "./xpeng.js";
 import * as weride from "./weride.js";
 import * as hoyoverse from "./hoyoverse.js";
+import * as anthropic from "./anthropic.js";
+import * as stripe from "./stripe.js";
+import * as figma from "./figma.js";
+import * as databricks from "./databricks.js";
+import * as cloudflare from "./cloudflare.js";
+import * as scaleai from "./scaleai.js";
+import * as vercel from "./vercel.js";
+import * as airbnb from "./airbnb.js";
+import * as discord from "./discord.js";
+import * as anduril from "./anduril.js";
+import * as brex from "./brex.js";
+import * as instacart from "./instacart.js";
+import * as pinterest from "./pinterest.js";
+import * as lyft from "./lyft.js";
 import * as iflytek from "./iflytek.js";
 import * as oppo from "./oppo.js";
 import * as vivo from "./vivo.js";
@@ -121,6 +135,7 @@ type CompanyFamily =
   | "Beisen iTalent"
   | "Moka"
   | "Greenhouse / Lever (intl arm)"
+  | "Greenhouse (US tech)"
   | "Liepin (third-party)";
 
 interface CompanyDirEntry {
@@ -177,6 +192,20 @@ const COMPANIES: CompanyDirEntry[] = [
   { key: "xpeng",           family: "Greenhouse / Lever (intl arm)", source: "boards.greenhouse.io/xpengmotors", label: "XPeng / 小鹏汽车 — US AI" },
   { key: "weride",          family: "Greenhouse / Lever (intl arm)", source: "jobs.lever.co/weride",        label: "WeRide / 文远知行 — US / 广州" },
   { key: "hoyoverse",       family: "Greenhouse / Lever (intl arm)", source: "boards.greenhouse.io/hoyoverse", label: "HoYoverse / 米哈游国际" },
+  { key: "anthropic",       family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/anthropic",  label: "Anthropic — AI" },
+  { key: "stripe",          family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/stripe",     label: "Stripe — Fintech" },
+  { key: "figma",           family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/figma",      label: "Figma — Design" },
+  { key: "databricks",      family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/databricks", label: "Databricks — Data/AI" },
+  { key: "cloudflare",      family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/cloudflare", label: "Cloudflare — Infra" },
+  { key: "scaleai",         family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/scaleai",    label: "Scale AI — AI/Data" },
+  { key: "vercel",          family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/vercel",     label: "Vercel — Dev tools" },
+  { key: "airbnb",          family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/airbnb",     label: "Airbnb — Travel" },
+  { key: "discord",         family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/discord",    label: "Discord — Social" },
+  { key: "anduril",         family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/andurilindustries", label: "Anduril — Defense" },
+  { key: "brex",            family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/brex",       label: "Brex — Fintech" },
+  { key: "instacart",       family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/instacart",  label: "Instacart — Delivery" },
+  { key: "pinterest",       family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/pinterest",  label: "Pinterest — Social" },
+  { key: "lyft",            family: "Greenhouse (US tech)",          source: "boards.greenhouse.io/lyft",       label: "Lyft — Transport" },
   { key: "hikvision",       family: "Liepin (third-party)",          source: "api-c.liepin.com",            label: "Hikvision / 海康威视" },
   { key: "cicc",            family: "Liepin (third-party)",          source: "api-c.liepin.com",            label: "CICC / 中金" },
   { key: "cainiao",         family: "Liepin (third-party)",          source: "api-c.liepin.com",            label: "Cainiao / 菜鸟" },
@@ -193,6 +222,7 @@ const SUBMIT_KIND_BY_FAMILY: Record<CompanyFamily, string> = {
   "Beisen Wecruit":                "beisen-wecruit",
   "Beisen iTalent":                "beisen-italent",
   "Greenhouse / Lever (intl arm)": "multipart-anon",
+  "Greenhouse (US tech)":          "multipart-anon",
   "Liepin (third-party)":          "external",
 };
 // Adapter-level deviations from their family default.
@@ -217,7 +247,7 @@ job-pro — query Chinese big-tech campus recruiting from your terminal
 
 USAGE
   job-pro <company> <verb> [options]
-  job-pro list [--compact]            list all 50 companies + source family
+  job-pro list [--compact]            list all 64 companies + source family
   job-pro status [--compact]          survey profile / sessions / memory / chrome
   job-pro selftest [--compact]        end-to-end check: search → schema → echo-submit
   job-pro recon [--companies a,b,c]   probe every adapter's submit_endpoint
@@ -231,7 +261,7 @@ USAGE
   job-pro profile show                print the loaded profile
   job-pro profile lint                validate format of every field
                                       (exits 1 on any FAIL — scriptable)
-  job-pro find <keyword>              search ALL 50 companies in parallel
+  job-pro find <keyword>              search ALL 64 companies in parallel
                                       [--limit N] [--companies a,b,c]
                                       [--timeout ms] [--apply-ready]
                                       [--compact | --text]
@@ -240,7 +270,7 @@ USAGE
   job-pro --version
   job-pro help
 
-50 companies, all live. Run \`job-pro list\` for the full table grouped
+64 companies, all live. Run \`job-pro list\` for the full table grouped
 by ATS family (Bespoke / Feishu / Beisen Wecruit / Beisen iTalent / Moka
 / Greenhouse-Lever / Liepin). Coverage summary at job.ha7ch.com.
 
@@ -561,6 +591,20 @@ const ADAPTERS = {
   xpeng,
   weride,
   hoyoverse,
+  anthropic,
+  stripe,
+  figma,
+  databricks,
+  cloudflare,
+  scaleai,
+  vercel,
+  airbnb,
+  discord,
+  anduril,
+  brex,
+  instacart,
+  pinterest,
+  lyft,
   iflytek,
   oppo,
   vivo,
@@ -1626,7 +1670,7 @@ function printCompanyList(compact: boolean): void {
   const keyWidth = Math.max(...COMPANIES.map((c) => c.key.length));
   const srcWidth = Math.max(...COMPANIES.map((c) => c.source.length));
   const kindWidth = Math.max(...COMPANIES.map((c) => submitKindFor(c.key, c.family).length));
-  console.log(`job-pro — 50 companies, all live. ATS-family breakdown:`);
+  console.log(`job-pro — 64 companies, all live. ATS-family breakdown:`);
   for (const family of order) {
     const entries = byFamily.get(family);
     if (!entries) continue;
@@ -1913,7 +1957,7 @@ async function main() {
         console.log(`  ${icon} ${c.name.padEnd(20)} ${c.ms}ms${detail}`);
       }
       console.log(`\n  ${checks.length - fails} pass / ${fails} fail / ${checks.length} total${title ? ` — sampled "${title}"` : ""}`);
-      if (fails === 0) console.log(`\n  Setup looks good. Run \`job-pro find "<keyword>"\` to scan all 50 companies.`);
+      if (fails === 0) console.log(`\n  Setup looks good. Run \`job-pro find "<keyword>"\` to scan all 64 companies.`);
     }
     if (fails > 0) process.exit(1);
     return;
