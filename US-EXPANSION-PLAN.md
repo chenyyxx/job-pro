@@ -1,24 +1,68 @@
 # job-pro US Market Expansion Plan
 
 > Created: 2026-06-02 · Last updated: 2026-06-03
-> Status: Phase 1 IMPLEMENTED (14 companies wired, local commit). Phases 2–4 planned.
+> Status: ARCHITECTURE REDESIGNED (2026-06-03). job-pro becomes a search tool within a new orchestrator.
 
 ---
 
-## Pipeline Architecture
+## New Architecture (2026-06-03) — SUPERSEDES below
+
+The pipeline has been redesigned. A **new repo `job-agent`** is the orchestrator.
+job-pro and cv-pro remain standalone CLIs with minimal changes, callable as tools.
+
+> **Status 2026-06-03 (evening):** `job-agent` is built and working end-to-end. All 5 stages
+> chain; `tsc` clean. What works now:
+> - **Discover** → 975 companies (Greenhouse/Lever/Ashby, from SimplifyJobs)
+> - **Enrich** → DOL PERM matching: normalized match (5→157/974) + optional `--resolve-perm`
+>   grounded LLM brand→entity resolver (→178/974, cached, hallucination-safe)
+> - **Search** → live ATS; `--locations`, `--skip-titles`, `--perm-only` (search only PERM filers), `--limit` (test sampler)
+> - **Match** → keyword Pass-1 + working Bedrock haiku-4.5 LLM Pass-2 (reasoning per role)
+> - **Review** → grouped by company; H-1B (from posting) and PERM/green-card (from DOL) shown
+>   as SEPARATE verdicts with evidence; ranked by fit; `--require-h1b`/`--exclude-no-h1b`/`--min-perm-filings=N`
+> - **Apply** → display-only stub (never auto-submits)
+>
+> **KEY REMAINING GAP — ATS discovery coverage (Workday).** The biggest PERM filers and best
+> green-card targets — Microsoft (~1861/qtr), Apple (629), NVIDIA (595), Amazon, Google, Meta,
+> TikTok (137) — are NOT in `companies.json` because they use **Workday** (or Feishu for TikTok),
+> not Greenhouse/Lever/Ashby. We have their PERM data but cannot reach their job postings. A
+> Workday adapter (Phase 3) is now the highest-value next step for a green-card-focused search.
+>
+> Note: the job-pro config-driven refactor below is moot — `job-agent`'s own `search` module is
+> already config-driven (reads `companies.json`, no per-company files). job-pro is legacy.
 
 ```
-cv-pro → job-pro → sponsor-check → final output
+Discovery → Enrich → Search (job-pro) → Match → Human Review → Apply
 ```
 
-| Stage | Tool | Input | Output |
-|-------|------|-------|--------|
-| 1 | **cv-pro** | Raw resume (YAML/JSON) | Structured resume JSON |
-| 2 | **job-pro** | Resume JSON + search params | Matched positions (JSON array) |
-| 3 | **sponsor-check** | Positions JSON (stdin) | Enriched positions with sponsorship + layoff signals |
+| Stage | Owner | Description |
+|-------|-------|-------------|
+| **Discover** | job-agent (built-in) | Static companies.json seeded from SimplifyJobs (974 GH/Lever/Ashby companies). Extensible to LinkedIn, WayUp, etc. |
+| **Enrich** | job-agent / sponsor-check | Stamps immigration (H-1B, PERM, filings, trend) + layoff data. Soft tag — no hard filter. |
+| **Search** | job-pro (this repo) | Queries live ATS boards. **Refactored to config-driven** — no individual .ts file per company. |
+| **Match** | job-agent | Pass 1: fast keyword score (free). Pass 2: optional LLM deep match (pluggable provider). |
+| **Review** | job-agent | Human review gate. Shows job link, score, salary, visa risk. User approves/skips each. |
+| **Apply** | job-agent | Fills application forms. NEVER auto-applies. Requires explicit confirmation. |
 
-```bash
-cv-pro get --variant=swe | job-pro find 'software engineer' --json | sponsor-check
+**Key decisions:**
+- SimplifyJobs = company discovery source, not job source
+- Companies with 0 jobs stay in list (checked live each run)
+- LLM match is optional, provider-pluggable (bedrock/openai/ollama)
+- Position detail parses salary/YOE/clearance from description HTML
+- cv-pro plugs in at match (ranking) or apply (form-filling) stages
+- Each stage is standalone CLI AND agent tool
+
+**Changes to THIS repo (job-pro):**
+- Refactor Greenhouse/Lever/Ashby to config-driven factories (accept slug at runtime)
+- Remove individual company .ts wrapper files (anthropic.ts, stripe.ts, etc.)
+- Accept companies.json input instead of hardcoded COMPANIES array
+- Minimal other changes — keep upstream-mergeable
+
+---
+
+## ~~Old Pipeline~~ (SUPERSEDED)
+
+```
+cv-pro → job-pro → sponsor-check → final output (OLD — replaced by job-agent)
 ```
 
 ---
